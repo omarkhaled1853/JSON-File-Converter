@@ -1,21 +1,20 @@
 package org.example;
 
-import org.json.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonFile {
 
-    public JSONObject readJson(String path) {
-        JSONParser parser = new JSONParser();
+    public Map<String, Object> readJson(String path) {
         try {
-            Object obj = parser.parse(new FileReader(path));
-            return (JSONObject) obj;
-        } catch (IOException | ParseException e) {
+            String jsonContent = new String(Files.readAllBytes(Paths.get(path)));
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            return objectMapper.readValue(jsonContent, Map.class);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
