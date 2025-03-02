@@ -4,6 +4,8 @@ import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +22,17 @@ public class MessagePackConverter {
         }
 
         return packer.toByteArray();
+    }
+
+    public void writeMessagePack(String path, byte[] msgPackData) {
+
+        try {
+            Files.write(Paths.get(path), msgPackData);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("MessagePack file created: output.msgpack");
     }
 
     private void pack(MessageBufferPacker packer, Object value) throws IOException {
