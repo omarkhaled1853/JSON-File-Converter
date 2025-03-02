@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonFile {
 
-    public Map<String, Object> readJson(String path) {
+    public static Map<String, Object> readJson(String path) {
         try {
             String jsonContent = new String(Files.readAllBytes(Paths.get(path)));
             ObjectMapper objectMapper = new ObjectMapper();

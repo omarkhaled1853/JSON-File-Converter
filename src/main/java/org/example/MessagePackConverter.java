@@ -2,6 +2,7 @@ package org.example;
 
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
+import org.msgpack.core.MessageUnpacker;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,7 +12,7 @@ import java.util.Map;
 
 public class MessagePackConverter {
 
-    public byte[] convertToMessagePack(Map<String, Object> data) {
+    public static byte[] convertToMessagePack(Map<String, Object> data) {
         MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
 
         try {
@@ -24,7 +25,17 @@ public class MessagePackConverter {
         return packer.toByteArray();
     }
 
-    public void writeMessagePack(String path, byte[] msgPackData) {
+    public static Object convertFromMessagePack(byte[] msgPackData) {
+        MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(msgPackData);
+        try {
+            return unpack(unpacker);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static void writeMessagePack(String path, byte[] msgPackData) {
 
         try {
             Files.write(Paths.get(path), msgPackData);
@@ -35,7 +46,7 @@ public class MessagePackConverter {
         System.out.println("MessagePack file created: output.msgpack");
     }
 
-    private void pack(MessageBufferPacker packer, Object value) throws IOException {
+    private static void pack(MessageBufferPacker packer, Object value) throws IOException {
         if (value == null) {
 
             packer.packNil();
@@ -72,4 +83,42 @@ public class MessagePackConverter {
             throw new IllegalArgumentException("Unsupported type: " + value.getClass());
         }
     }
+
+    // Recursive unpacking function
+    private static Object unpack(MessageUnpacker unpacker) throws IOException {
+        switch (unpacker.getNextFormat().getValueType()) {
+            case NIL:
+                unpacker.unpackNil();
+                return null;
+            case BOOLEAN:
+                return unpacker.unpackBoolean();
+            case INTEGER:
+                return unpacker.unpackLong();
+            case FLOAT:
+                return unpacker.unpackDouble();
+            case STRING:
+                return unpacker.unpackString();
+            case BINARY:
+                return unpacker.readPayload(unpacker.unpackBinaryHeader());
+            case ARRAY:
+                int arraySize = unpacker.unpackArrayHeader();
+                Object[] array = new Object[arraySize];
+                for (int i = 0; i < arraySize; i++) {
+                    array[i] = unpack(unpacker);
+                }
+                return java.util.Arrays.asList(array);
+            case MAP:
+                int mapSize = unpacker.unpackMapHeader();
+                Map<Object, Object> map = new java.util.HashMap<>();
+                for (int i = 0; i < mapSize; i++) {
+                    Object key = unpack(unpacker);
+                    Object value = unpack(unpacker);
+                    map.put(key, value);
+                }
+                return map;
+            default:
+                throw new IOException("Unknown format");
+        }
+    }
+
 }
