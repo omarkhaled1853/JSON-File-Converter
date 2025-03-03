@@ -1,11 +1,12 @@
 package org.example;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.avro.generic.GenericRecord;
+import org.example.avro.AvroConverter;
+import org.example.messagepack.MessagePackConverter;
+import org.example.protobuffer.ProtoBufferConverter;
+import org.example.thrift.ThriftConverter;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Map;
+import java.io.File;
 
 
 
@@ -14,27 +15,49 @@ public class Main {
 
 //        Read JSON file & convert to MessagePack file
         String inputPath = "myJson.json";
-
-        Map<String, Object> jsonMap = JsonFile.readJson(inputPath);
-
+//
         // Convert Map to MessagePack
-        byte[] msgPackData = MessagePackConverter.convertToMessagePack(jsonMap);
+        byte[] msgPackBytes = MessagePackConverter.convertToMessagePack(inputPath);
 
-        String outputPath = "myMsgPack.msgpack";
         // Save MessagePack to file
-        MessagePackConverter.writeMessagePack(outputPath, msgPackData);
+        MessagePackConverter.writeMessagePack("myMsgPack.msgpack", msgPackBytes);
 //        ============================================================================================
 
-//        Read MessagePack file & convert back to JSON (verification)
-        try {
-            byte[] readMsgPack = Files.readAllBytes(Paths.get("myMsgPack.msgpack"));
-            Object decodedObject = MessagePackConverter.convertFromMessagePack(readMsgPack);
+//        Convert to avro
+        String inputSchema = "menu.avsc";
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            String decodedJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(decodedObject);
-            System.out.println("Decoded JSON:\n" + decodedJson);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        AvroConverter.readAvroSchema(inputSchema);
+
+        GenericRecord menuRecord = AvroConverter.convertToAvro(inputPath);
+
+        AvroConverter.writeAvro(menuRecord, "myAvro.avro");
+
+//        ============================================================================================
+
+//        Convert to proto
+
+        byte[] protoBytes = ProtoBufferConverter.convertToProto(inputPath);
+
+        ProtoBufferConverter.writeProto("myProto.bin", protoBytes);
+//        ============================================================================================
+
+//        Convert to threft
+
+        byte[] thriftBytes = ThriftConverter.convertToThrift(inputPath);
+
+        ThriftConverter.writeThrift("myThrift.bin", thriftBytes);
+
+        File json = new File("myJson.json");
+        File avro = new File("myAvro.avro");
+        File proto = new File("myProto.bin");
+        File thrift = new File("myThrift.bin");
+        File msgpack = new File("myMsgPack.msgpack");
+
+
+        System.out.println("json size: " + json.length() + " bytes");
+        System.out.println("avro size: " + avro.length() + " bytes");
+        System.out.println("proto size: " + proto.length() + " bytes");
+        System.out.println("thrift size: " + thrift.length() + " bytes");
+        System.out.println("msgpack size: " + msgpack.length() + " bytes");
     }
 }
