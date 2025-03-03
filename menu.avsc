@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "org.example.MenuClass",
+  "fields": [
+    {"name": "header", "type": "string"},
+    {
+      "name": "items",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "MenuItem",
+          "fields": [
+            {"name": "id", "type": "string"},
+            {"name": "label", "type": ["null", "string"], "default": null}
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
-package org.example;
+package org.example.messagepack;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
@@ -12,17 +13,21 @@ import java.util.Map;
 
 public class MessagePackConverter {
 
-    public static byte[] convertToMessagePack(Map<String, Object> data) {
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-
+    public static byte[] convertToMessagePack(String path) {
         try {
+            String jsonContent = new String(Files.readAllBytes(Paths.get(path)));
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            Map<String, Object> data = objectMapper.readValue(jsonContent, Map.class);
+
+            MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
             pack(packer, data);
             packer.close();
+
+            return packer.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        return packer.toByteArray();
     }
 
     public static Object convertFromMessagePack(byte[] msgPackData) {
@@ -43,7 +48,7 @@ public class MessagePackConverter {
             throw new RuntimeException(e);
         }
 
-        System.out.println("MessagePack file created: output.msgpack");
+        System.out.println("MessagePack file created");
     }
 
     private static void pack(MessageBufferPacker packer, Object value) throws IOException {
