@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package org.example;
+
+message ProtoMenu {
+    string header = 1;
+    repeated MenuItem items = 2;
+}
+
+message MenuItem {
+    string id = 1;
+    optional string label = 2;
+}
+
+message MenuWrapper { 
+    ProtoMenu menu = 1;
+}
+
